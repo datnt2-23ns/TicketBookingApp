@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">TicketBookingApp</string>
+    <string name="subtitle_splash">Find an easy way to buy airplane tickets\n
+        with just a few clicks in the applications</string>
+    <string name="dashboard_title">Let\'s explore the world \n with us!!!</string>
+</resources>
