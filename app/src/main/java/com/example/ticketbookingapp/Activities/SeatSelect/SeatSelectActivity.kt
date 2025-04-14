@@ -11,6 +11,7 @@ import com.example.ticketbookingapp.Domain.FlightModel
 
 class SeatSelectActivity : AppCompatActivity() {
     private lateinit var flight: FlightModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -24,11 +25,14 @@ class SeatSelectActivity : AppCompatActivity() {
                 flight = flight,
                 onBackClick = {
                     finish()
-                }, onConfirm = {
+                },
+                onConfirm = { updatedFlight, selectedSeats, totalPrice ->
                     val intent = Intent(this, TicketDetailActivity::class.java).apply {
-                        putExtra("flight", flight)
+                        putExtra("flight", updatedFlight)
+                        putExtra("selectedSeats", selectedSeats)
+                        putExtra("totalPrice", totalPrice)
                     }
-                    startActivity(intent, null)
+                    startActivity(intent)
                 }
             )
         }

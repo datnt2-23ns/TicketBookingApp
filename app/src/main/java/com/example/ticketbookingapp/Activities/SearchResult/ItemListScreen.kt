@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.example.ticketbookingapp.Domain.FlightModel
 import com.example.ticketbookingapp.R
 import com.example.ticketbookingapp.ViewModel.MainViewModel
 
@@ -40,12 +40,9 @@ fun ItemListScreen(
     val items by viewModel.loadFiltered(from, to).observeAsState(emptyList())
     var isLoading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(from, to) {
-        viewModel.loadFiltered(from, to)
-    }
-
-    LaunchedEffect(items) {
-        isLoading = items.isEmpty()
+    // Cập nhật trạng thái loading
+    if (items.isNotEmpty()) {
+        isLoading = false
     }
 
     ConstraintLayout(
@@ -54,10 +51,11 @@ fun ItemListScreen(
             .background(color = colorResource(R.color.darkPurple2))
             .padding(top = 36.dp, start = 16.dp, end = 16.dp)
     ) {
-        val (backBtn, headerTitle, worldImg) = createRefs()
+        val (backBtn, headerTitle) = createRefs()
+
         Image(
             painter = painterResource(R.drawable.back),
-            contentDescription = null,
+            contentDescription = "Back button",
             modifier = Modifier
                 .clickable { onBackClick() }
                 .constrainAs(backBtn) {
@@ -80,35 +78,39 @@ fun ItemListScreen(
                     bottom.linkTo(backBtn.bottom)
                 }
         )
-        Image(
-            painter = painterResource(R.drawable.world),
-            contentDescription = null,
-            modifier = Modifier
-                .constrainAs(worldImg) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                }
-        )
     }
 
-    // Show list
-    if (isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(top = 100.dp)
-        ) {
-            itemsIndexed(items) { index, item ->
-                FlightItem(item = item, index = index)
+    // Hiển thị giao diện
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            isLoading -> {
+                CircularProgressIndicator()
+            }
+
+            items.isEmpty() -> {
+                Text(
+                    text = "No flights found for $from to $to",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 60.dp)
+                ) {
+                    itemsIndexed(items as List<FlightModel>) { index, item ->
+                        FlightItem(item = item, index = index)
+                    }
+                }
             }
         }
     }
 }
-

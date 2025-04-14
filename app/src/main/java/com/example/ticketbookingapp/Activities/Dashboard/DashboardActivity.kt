@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -56,22 +57,29 @@ fun MainScreen() {
     val locations = remember { mutableStateListOf<LocationModel>() }
     val viewModel = MainViewModel()
     var showLocationLoading by remember { mutableStateOf(true) }
-    var from: String = ""
-    var to: String = ""
-    var classes: String = ""
-    var adultPassenger: String = ""
-    var childPassenger: String = ""
+    var from by remember { mutableStateOf("") }
+    var to by remember { mutableStateOf("") }
+    var classes by remember { mutableStateOf("") }
+    var adultPassenger by remember { mutableStateOf("0") }
+    var childPassenger by remember { mutableStateOf("0") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     StatusTopBarColor()
 
     LaunchedEffect(Unit) {
         viewModel.loadLocations().observeForever { result ->
-            locations.clear()
-            locations.addAll(result)
-            showLocationLoading = false
+            if (result != null) {
+                locations.clear()
+                locations.addAll(result)
+                showLocationLoading = false
+            } else {
+                errorMessage = "Failed to load locations"
+                showLocationLoading = false
+            }
         }
     }
+
     Scaffold(
         bottomBar = { MyBottomBar() },
     ) { paddingValues ->
@@ -95,10 +103,9 @@ fun MainScreen() {
                         .fillMaxWidth()
                         .padding(vertical = 16.dp, horizontal = 24.dp)
                 ) {
-
                     // From selection
                     YellowTitle("From")
-                    val locationNames: List<String> = locations.map { it.Name }
+                    val locationNames = locations.map { it.Name }
                     DropDownList(
                         items = locationNames,
                         loadingIcon = painterResource(R.drawable.from_ic),
@@ -128,17 +135,21 @@ fun MainScreen() {
                         PassengerCounter(
                             title = "Adult",
                             modifier = Modifier.weight(1f),
-                            onItemSelected = { adultPassenger = it }
+                            onItemSelected = { value ->
+                                adultPassenger = value
+                            }
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         PassengerCounter(
                             title = "Child",
                             modifier = Modifier.weight(1f),
-                            onItemSelected = { childPassenger = it }
+                            onItemSelected = { value ->
+                                childPassenger = value
+                            }
                         )
                     }
 
-                    // Calender picker
+                    // Calendar picker
                     Spacer(modifier = Modifier.height(16.dp))
                     Row {
                         YellowTitle("Departure date", Modifier.weight(1f))
@@ -158,22 +169,34 @@ fun MainScreen() {
                         hint = "Select class",
                         showLocationLoading = showLocationLoading
                     ) { selectedItem ->
-                        to = selectedItem
+                        classes = selectedItem
                     }
 
                     // Search button
                     Spacer(modifier = Modifier.height(16.dp))
                     GradientButton(
                         onClick = {
+                            val totalPassengers = (adultPassenger.toIntOrNull() ?: 0) +
+                                    (childPassenger.toIntOrNull() ?: 0)
                             val intent = Intent(context, SearchResultActivity::class.java).apply {
                                 putExtra("from", from)
                                 putExtra("to", to)
-                                putExtra("numPassenger", adultPassenger + childPassenger)
+                                putExtra("numPassenger", totalPassengers.toString())
                             }
                             startActivity(context, intent, null)
                         },
-                        text = "Search",
+                        text = "Search"
                     )
+
+                    // Error message
+                    errorMessage?.let { message ->
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = message,
+                            color = Color.Red,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
             }
         }

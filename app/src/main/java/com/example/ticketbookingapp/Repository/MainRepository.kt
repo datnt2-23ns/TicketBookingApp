@@ -12,21 +12,33 @@ import com.google.firebase.database.ValueEventListener
 
 class MainRepository {
     private val firebaseDatabase = FirebaseDatabase.getInstance()
+
     fun loadLocation(): LiveData<MutableList<LocationModel>> {
         val listData = MutableLiveData<MutableList<LocationModel>>()
         val ref = firebaseDatabase.getReference("Locations")
         ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                var list = mutableListOf<LocationModel>()
-                for (childSnapshot in snapshot.children) {
-                    val item = childSnapshot.getValue(LocationModel::class.java)
-                    item?.let { list.add(it) }
+                val list = mutableListOf<LocationModel>()
+                if (snapshot.exists()) {
+                    for (childSnapshot in snapshot.children) {
+                        val item = childSnapshot.getValue(LocationModel::class.java)
+                        item?.let {
+                            list.add(it)
+                        } ?: run {
+                            println("Failed to parse LocationModel: ${childSnapshot.key}")
+                        }
+                    }
+                    println("Locations loaded: ${list.size} items")
+                    listData.value = list
+                } else {
+                    println("Locations node is empty or does not exist")
+                    listData.value = mutableListOf() // Trả về rỗng để ngừng loading
                 }
-                listData.value = list
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                println("Firebase error in loadLocation: ${error.message}")
+                listData.value = mutableListOf() // Trả về rỗng để ngừng loading
             }
         })
         return listData
@@ -34,24 +46,28 @@ class MainRepository {
 
     fun loadFiltered(from: String, to: String): LiveData<MutableList<FlightModel>> {
         val listData = MutableLiveData<MutableList<FlightModel>>()
-        var ref = firebaseDatabase.getReference("Flights")
+        val ref = firebaseDatabase.getReference("Flights")
         val query: Query = ref.orderByChild("from").equalTo(from)
         query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val lists = mutableListOf<FlightModel>()
-                for (childSnapshot in snapshot.children) {
-                    val list = childSnapshot.getValue(FlightModel::class.java)
-                    if (list != null) {
-                        if (list.To == to) {
+                if (snapshot.exists()) {
+                    for (childSnapshot in snapshot.children) {
+                        val list = childSnapshot.getValue(FlightModel::class.java)
+                        if (list != null && list.To == to) {
                             lists.add(list)
                         }
                     }
+                    println("Filtered flights loaded: ${lists.size} items")
+                } else {
+                    println("Flights node is empty or no matches for from=$from")
                 }
                 listData.value = lists
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                println("Firebase error in loadFiltered: ${error.message}")
+                listData.value = mutableListOf() // Trả về rỗng để ngừng loading
             }
         })
         return listData

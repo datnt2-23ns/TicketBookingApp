@@ -8,7 +8,7 @@ import com.example.ticketbookingapp.Activities.Splash.StatusTopBarColor
 import com.example.ticketbookingapp.ViewModel.MainViewModel
 
 class SearchResultActivity : AppCompatActivity() {
-    private val viewModel = MainViewModel()
+    private lateinit var viewModel: MainViewModel
     private var from: String = ""
     private var to: String = ""
 
@@ -16,6 +16,10 @@ class SearchResultActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Khởi tạo ViewModel
+        viewModel = MainViewModel()
+
+        // Lấy dữ liệu từ Intent
         from = intent.getStringExtra("from") ?: ""
         to = intent.getStringExtra("to") ?: ""
 

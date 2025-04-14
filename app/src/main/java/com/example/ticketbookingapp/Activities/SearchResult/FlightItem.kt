@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -53,9 +54,12 @@ fun FlightItem(item: FlightModel, index: Int) {
 
         AsyncImage(
             model = item.AirlineLogo,
-            contentDescription = null,
+            contentDescription = "Airline logo",
+            contentScale = ContentScale.Fit,
+//            placeholder = painterResource(R.drawable.placeholder_logo), // Thêm placeholder
+//            error = painterResource(R.drawable.error_logo), // Thêm hình lỗi
             modifier = Modifier
-                .size(200.dp, 50.dp)
+                .size(width = 120.dp, height = 40.dp) // Giảm kích thước logo
                 .constrainAs(logo) {
                     start.linkTo(parent.start)
                     top.linkTo(parent.top)
@@ -80,7 +84,7 @@ fun FlightItem(item: FlightModel, index: Int) {
 
         Image(
             painter = painterResource(R.drawable.line_airple_blue),
-            contentDescription = null,
+            contentDescription = "Flight path icon",
             modifier = Modifier
                 .padding(top = 8.dp)
                 .constrainAs(airplaneIcon) {
@@ -92,7 +96,7 @@ fun FlightItem(item: FlightModel, index: Int) {
 
         Image(
             painter = painterResource(R.drawable.dash_line),
-            contentDescription = null,
+            contentDescription = "Separator line",
             modifier = Modifier
                 .padding(top = 8.dp)
                 .constrainAs(dashLine) {
@@ -118,7 +122,7 @@ fun FlightItem(item: FlightModel, index: Int) {
 
         Image(
             painter = painterResource(R.drawable.seat_black_ic),
-            contentDescription = null,
+            contentDescription = "Seat icon",
             modifier = Modifier
                 .padding(8.dp)
                 .constrainAs(seatIcon) {
@@ -135,7 +139,7 @@ fun FlightItem(item: FlightModel, index: Int) {
             color = colorResource(R.color.darkPurple2),
             modifier = Modifier
                 .constrainAs(classTxt) {
-                    start.linkTo(seatIcon.start)
+                    start.linkTo(seatIcon.end, margin = 4.dp)
                     top.linkTo(seatIcon.top)
                     bottom.linkTo(seatIcon.bottom)
                 }
@@ -175,7 +179,7 @@ fun FlightItem(item: FlightModel, index: Int) {
                 .padding(end = 16.dp)
                 .constrainAs(toTxt) {
                     top.linkTo(timeTxt.bottom)
-                    start.linkTo(parent.start)
+                    end.linkTo(parent.end) // Đặt ở bên phải
                 }
         )
 
@@ -185,6 +189,7 @@ fun FlightItem(item: FlightModel, index: Int) {
             fontWeight = FontWeight.SemiBold,
             color = Color.Black,
             modifier = Modifier
+                .padding(end = 16.dp)
                 .constrainAs(toShortTxt) {
                     top.linkTo(toTxt.bottom)
                     start.linkTo(toTxt.start)
